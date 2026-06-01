@@ -4,6 +4,42 @@ function getResend() {
   return new Resend(process.env.RESEND_API_KEY ?? 'placeholder')
 }
 
+const FROM = 'TokenWatch <support@tokenwatch.flowlog.dev>'
+export const ADMIN_EMAIL = 'support@flowlog.dev'
+
+export async function sendEmail({
+  to,
+  subject,
+  html,
+}: {
+  to: string | string[]
+  subject: string
+  html: string
+}) {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn('RESEND_API_KEY is not configured. Email skipped:', subject)
+    return { data: null, error: null }
+  }
+
+  return getResend().emails.send({
+    from: FROM,
+    to,
+    subject,
+    html,
+  })
+}
+
+export function emailFrame(title: string, body: string) {
+  return `
+    <div style="font-family: Arial, sans-serif; max-width: 620px; margin: 0 auto; background: #0d0f0e; color: #f4efe6; padding: 32px;">
+      <div style="font-size: 22px; font-weight: 800; margin-bottom: 24px;">Token<span style="color:#d76f36;">Watch</span></div>
+      <h1 style="font-size: 22px; line-height: 1.3; margin: 0 0 16px;">${title}</h1>
+      <div style="color: #c8c0b4; font-size: 14px; line-height: 1.7;">${body}</div>
+      <p style="color:#7e786f; font-size: 12px; margin-top: 32px;">Sent by TokenWatch support.</p>
+    </div>
+  `
+}
+
 export async function sendBudgetAlert({
   to,
   engineerName,

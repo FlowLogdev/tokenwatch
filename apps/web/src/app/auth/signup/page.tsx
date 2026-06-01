@@ -35,7 +35,12 @@ export default function SignupPage() {
     }
 
     if (data.user) {
-      router.push('/dashboard/setup')
+      await fetch('/api/registrations/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: data.user.id }),
+      })
+      router.push('/pending-approval')
     }
   }
 
@@ -64,7 +69,7 @@ export default function SignupPage() {
             </span>
           </Link>
           <h1 style={{ fontSize: '24px', fontWeight: 700, marginTop: '24px', marginBottom: '8px' }}>Start tracking AI spend</h1>
-          <p style={{ color: 'var(--muted)', fontSize: '14px' }}>Free trial · No credit card required</p>
+          <p style={{ color: 'var(--muted)', fontSize: '14px' }}>Registration requires approval before billing access.</p>
         </div>
 
         <div className="card">
@@ -85,7 +90,7 @@ export default function SignupPage() {
               <input
                 type="text"
                 className="input-field"
-                placeholder="Acme Corp"
+                placeholder="Northstar Robotics"
                 value={orgName}
                 onChange={e => setOrgName(e.target.value)}
                 required
@@ -129,7 +134,7 @@ export default function SignupPage() {
             )}
 
             <button type="submit" className="btn-primary" disabled={loading} style={{ width: '100%', justifyContent: 'center', marginTop: '4px' }}>
-              {loading ? 'Creating account...' : 'Create account →'}
+              {loading ? 'Creating request...' : 'Request approval'}
             </button>
           </form>
 
@@ -150,7 +155,7 @@ export default function SignupPage() {
           </button>
 
           <p style={{ fontSize: '12px', color: 'var(--muted)', textAlign: 'center', marginTop: '16px' }}>
-            By signing up you agree to our Terms of Service and Privacy Policy.
+            We will email support@flowlog.dev for approval, then send your billing link after review.
           </p>
         </div>
 

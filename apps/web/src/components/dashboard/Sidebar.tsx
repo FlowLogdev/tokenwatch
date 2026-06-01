@@ -4,12 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Overview', icon: '▦' },
-  { href: '/dashboard/engineers', label: 'Engineers', icon: '👤' },
-  { href: '/dashboard/alerts', label: 'Alerts', icon: '🔔' },
-  { href: '/dashboard/budget', label: 'Budget', icon: '💰' },
-  { href: '/dashboard/tools', label: 'Tools', icon: '🛠' },
-  { href: '/dashboard/settings', label: 'Settings', icon: '⚙' },
+  { href: '/dashboard', label: 'Overview', icon: 'OV' },
+  { href: '/dashboard/engineers', label: 'Engineers', icon: 'EN' },
+  { href: '/dashboard/alerts', label: 'Alerts', icon: 'AL' },
+  { href: '/dashboard/budget', label: 'Budget', icon: 'BU' },
+  { href: '/dashboard/tools', label: 'Tools', icon: 'TO' },
+  { href: '/dashboard/tickets', label: 'Tickets', icon: 'TI' },
+  { href: '/dashboard/admin', label: 'Admin', icon: 'AD' },
+  { href: '/dashboard/settings', label: 'Settings', icon: 'SE' },
 ]
 
 export default function DashboardSidebar() {
@@ -26,10 +28,8 @@ export default function DashboardSidebar() {
       padding: '20px 0',
     }}>
       <div style={{ padding: '0 20px 20px', borderBottom: '1px solid var(--border)' }}>
-        <Link href="/" style={{ textDecoration: 'none' }}>
-          <span style={{ fontWeight: 800, fontSize: '18px', color: 'var(--accent)' }}>
-            Token<span style={{ color: 'var(--text)' }}>Watch</span>
-          </span>
+        <Link href="/" className="brand-mark" style={{ fontSize: 18 }}>
+          Token<span>Watch</span>
         </Link>
       </div>
 
@@ -48,7 +48,7 @@ export default function DashboardSidebar() {
                 gap: '10px',
                 padding: '10px 20px',
                 fontSize: '14px',
-                fontWeight: isActive ? 600 : 500,
+                fontWeight: isActive ? 700 : 500,
                 color: isActive ? 'var(--text)' : 'var(--muted)',
                 textDecoration: 'none',
                 background: isActive ? 'var(--surface2)' : 'transparent',
@@ -56,7 +56,7 @@ export default function DashboardSidebar() {
                 transition: 'all 0.15s',
               }}
             >
-              <span style={{ fontSize: '16px', width: '20px', textAlign: 'center' }}>{item.icon}</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '10px', width: '22px', textAlign: 'center', letterSpacing: '0.03em' }}>{item.icon}</span>
               {item.label}
             </Link>
           )
@@ -67,16 +67,16 @@ export default function DashboardSidebar() {
         <Link href="/billing" style={{
           display: 'block',
           background: 'var(--accent-muted)',
-          border: '1px solid rgba(249,115,22,0.3)',
+          border: '1px solid rgba(215,111,54,0.3)',
           borderRadius: '8px',
           padding: '10px 12px',
           textDecoration: 'none',
           textAlign: 'center',
         }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-            Starter Plan
+          <div style={{ fontSize: '12px', fontWeight: 800, color: 'var(--accent)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Billing
           </div>
-          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Upgrade →</div>
+          <div style={{ fontSize: '11px', color: 'var(--muted)', marginTop: '2px' }}>Manage plan</div>
         </Link>
       </div>
     </aside>

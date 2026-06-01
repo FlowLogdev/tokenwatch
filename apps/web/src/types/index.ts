@@ -1,5 +1,9 @@
 export type Plan = 'starter' | 'team' | 'enterprise'
-export type Role = 'admin' | 'member'
+export type Role = 'global_admin' | 'admin' | 'member'
+export type ApprovalStatus = 'pending' | 'approved' | 'denied'
+export type SubscriptionStatus = 'unpaid' | 'active' | 'past_due' | 'canceled'
+export type TicketStatus = 'open' | 'in_progress' | 'waiting_on_customer' | 'resolved' | 'closed'
+export type TicketPriority = 'low' | 'normal' | 'high' | 'urgent'
 export type Tool = 'claude_code' | 'codex' | 'chatgpt' | 'cursor' | 'copilot' | 'custom'
 
 export interface Organization {
@@ -7,9 +11,40 @@ export interface Organization {
   name: string
   slug: string
   plan: Plan
+  approval_status: ApprovalStatus
+  subscription_status: SubscriptionStatus
   monthly_budget: number // cents
   stripe_customer_id: string | null
   stripe_subscription_id: string | null
+  created_at: string
+}
+
+export interface SupportTicket {
+  id: string
+  ticket_number: string
+  org_id: string | null
+  user_id: string | null
+  requester_name: string
+  requester_email: string
+  company: string | null
+  subject: string
+  description: string
+  status: TicketStatus
+  priority: TicketPriority
+  last_customer_read_at: string | null
+  last_admin_read_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface SupportTicketMessage {
+  id: string
+  ticket_id: string
+  author_user_id: string | null
+  author_email: string
+  author_name: string
+  is_admin: boolean
+  body: string
   created_at: string
 }
 

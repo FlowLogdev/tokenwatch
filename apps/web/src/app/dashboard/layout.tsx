@@ -1,14 +1,25 @@
 import { redirect } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { requireAppUser, isSupportAdmin } from '@/lib/authz'
 import DashboardSidebar from '@/components/dashboard/Sidebar'
 import DashboardTopbar from '@/components/dashboard/Topbar'
 
-export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+export const dynamic = 'force-dynamic'
 
-  if (!user) {
-    redirect('/auth/login')
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const { profile, organization } = await requireAppUser()
+
+  if (!isSupportAdmin(profile)) {
+    if (organization.approval_status === 'pending') {
+      redirect('/pending-approval')
+    }
+
+    if (organization.approval_status === 'denied') {
+      redirect('/access-denied')
+    }
+
+    if (organization.subscription_status !== 'active') {
+      redirect('/billing')
+    }
   }
 
   return (

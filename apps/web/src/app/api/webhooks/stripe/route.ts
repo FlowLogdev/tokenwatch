@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
+import { getStripe } from '@/lib/stripe'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!)
+  const stripe = getStripe()
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -35,17 +36,27 @@ export async function POST(req: NextRequest) {
     const plan = PRICE_TO_PLAN[priceId] ?? 'starter'
     await supabase
       .from('organizations')
-      .update({ stripe_customer_id: customerId, stripe_subscription_id: subscriptionId, plan })
-      .eq('stripe_customer_id', customerId)
+      .update({
+        stripe_customer_id: customerId,
+        stripe_subscription_id: subscriptionId,
+        plan,
+        subscription_status: 'active',
+      })
+      .eq('id', session.metadata?.org_id ?? '')
   }
 
   if (event.type === 'customer.subscription.updated') {
     const sub = event.data.object as Stripe.Subscription
     const priceId = sub.items.data[0].price.id
     const plan = PRICE_TO_PLAN[priceId] ?? 'starter'
+    const subscriptionStatus = sub.status === 'active' || sub.status === 'trialing'
+      ? 'active'
+      : sub.status === 'past_due'
+        ? 'past_due'
+        : 'unpaid'
     await supabase
       .from('organizations')
-      .update({ plan, stripe_subscription_id: sub.id })
+      .update({ plan, stripe_subscription_id: sub.id, subscription_status: subscriptionStatus })
       .eq('stripe_customer_id', sub.customer as string)
   }
 
@@ -53,7 +64,7 @@ export async function POST(req: NextRequest) {
     const sub = event.data.object as Stripe.Subscription
     await supabase
       .from('organizations')
-      .update({ plan: 'starter', stripe_subscription_id: null })
+      .update({ plan: 'starter', stripe_subscription_id: null, subscription_status: 'canceled' })
       .eq('stripe_customer_id', sub.customer as string)
   }
 

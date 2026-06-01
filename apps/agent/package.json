@@ -1,0 +1,22 @@
+{
+  "name": "tokenwatch-agent",
+  "version": "0.1.0",
+  "description": "AI spend tracking agent for TokenWatch — monitors Claude Code, Cursor, ChatGPT and more",
+  "main": "src/index.js",
+  "bin": {
+    "tokenwatch": "bin/tokenwatch.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "start": "node src/index.js"
+  },
+  "keywords": ["ai", "spend", "tracking", "claude", "openai", "tokenwatch"],
+  "license": "MIT",
+  "dependencies": {
+    "chokidar": "^3.6.0",
+    "node-fetch": "^3.3.2"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

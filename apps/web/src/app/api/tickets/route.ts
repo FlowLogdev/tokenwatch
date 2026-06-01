@@ -42,6 +42,45 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error || !ticket) {
+    if (error?.message?.includes('support_tickets')) {
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? req.nextUrl.origin
+      await Promise.all([
+        sendEmail({
+          to: ADMIN_EMAIL,
+          subject: `Support request ${number}: ${body.subject}`,
+          html: emailFrame(
+            `Support request ${number}`,
+            `
+              <p><strong>Customer:</strong> ${body.name} (${body.email})</p>
+              <p><strong>Company:</strong> ${body.company || 'Not provided'}</p>
+              <p><strong>Subject:</strong> ${body.subject}</p>
+              <p>${body.description}</p>
+              <p style="color:#d76f36;">The email was sent, but the ticket was not saved because the support_tickets table is not available yet.</p>
+            `
+          ),
+        }),
+        sendEmail({
+          to: body.email,
+          subject: `We received your TokenWatch request ${number}`,
+          html: emailFrame(
+            `Request ${number} was received`,
+            `
+              <p>We received your request and sent a copy to Flowlog support.</p>
+              <p><strong>Subject:</strong> ${body.subject}</p>
+              <p>${body.description}</p>
+              <p>Once the support database is enabled, future requests will also appear in your dashboard.</p>
+              <p><a href="${siteUrl}" style="color:#d76f36;">TokenWatch</a></p>
+            `
+          ),
+        }),
+      ])
+
+      return NextResponse.json({
+        ticketNumber: number,
+        warning: 'Email sent, but ticket was not saved because support_tickets is missing.',
+      })
+    }
+
     return NextResponse.json({ error: error?.message ?? 'Could not create ticket.' }, { status: 500 })
   }
 

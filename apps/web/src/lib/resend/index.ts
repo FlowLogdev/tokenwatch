@@ -1,7 +1,8 @@
 import { Resend } from 'resend'
 
 function getResend() {
-  return new Resend(process.env.RESEND_API_KEY ?? 'placeholder')
+  const apiKey = (process.env.RESEND_API_KEY ?? 'placeholder').replace(/^\uFEFF/, '').trim()
+  return new Resend(apiKey)
 }
 
 const FROM = 'TokenWatch <support@tokenwatch.flowlog.dev>'
@@ -16,7 +17,7 @@ export async function sendEmail({
   subject: string
   html: string
 }) {
-  if (!process.env.RESEND_API_KEY) {
+  if (!process.env.RESEND_API_KEY?.trim()) {
     console.warn('RESEND_API_KEY is not configured. Email skipped:', subject)
     return { data: null, error: null }
   }

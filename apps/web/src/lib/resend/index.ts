@@ -1,7 +1,8 @@
 import { Resend } from 'resend'
+import { cleanEnv } from '@/lib/env'
 
 function getResend() {
-  const apiKey = (process.env.RESEND_API_KEY ?? 'placeholder').replace(/^\uFEFF/, '').trim()
+  const apiKey = cleanEnv(process.env.RESEND_API_KEY, 'placeholder')
   return new Resend(apiKey)
 }
 
@@ -17,7 +18,7 @@ export async function sendEmail({
   subject: string
   html: string
 }) {
-  if (!process.env.RESEND_API_KEY?.trim()) {
+  if (!cleanEnv(process.env.RESEND_API_KEY)) {
     console.warn('RESEND_API_KEY is not configured. Email skipped:', subject)
     return { data: null, error: null }
   }

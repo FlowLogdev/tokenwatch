@@ -1,11 +1,14 @@
 import Stripe from 'stripe'
+import { cleanEnv } from '@/lib/env'
 
 export function getStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) {
+  const apiKey = cleanEnv(process.env.STRIPE_SECRET_KEY)
+
+  if (!apiKey) {
     throw new Error('STRIPE_SECRET_KEY is not configured')
   }
 
-  return new Stripe(process.env.STRIPE_SECRET_KEY)
+  return new Stripe(apiKey)
 }
 
 export const STRIPE_PRICES = {

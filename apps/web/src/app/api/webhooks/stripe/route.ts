@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 import { getStripe } from '@/lib/stripe'
+import { cleanEnv } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
   const stripe = getStripe()
   const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL),
+    cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY)
   )
   const PRICE_TO_PLAN: Record<string, string> = {
     [process.env.STRIPE_PRICE_STARTER ?? 'price_starter']: 'starter',
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
 
   let event: Stripe.Event
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+    event = stripe.webhooks.constructEvent(body, sig, cleanEnv(process.env.STRIPE_WEBHOOK_SECRET))
   } catch {
     return NextResponse.json({ error: 'Invalid signature' }, { status: 400 })
   }

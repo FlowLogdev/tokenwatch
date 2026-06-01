@@ -1,15 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { sendBudgetAlert, sendAnomalyAlert } from '@/lib/resend'
+import { cleanEnv } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
   const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+    cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL),
+    cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY)
   )
-  if (req.headers.get('authorization') !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (req.headers.get('authorization') !== `Bearer ${cleanEnv(process.env.CRON_SECRET)}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 

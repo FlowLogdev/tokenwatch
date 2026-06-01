@@ -6,7 +6,7 @@ function getResend() {
   return new Resend(apiKey)
 }
 
-const FROM = 'TokenWatch <support@tokenwatch.flowlog.dev>'
+const FROM = 'TokenWatch <support@flowlog.dev>'
 export const ADMIN_EMAIL = 'support@flowlog.dev'
 
 export async function sendEmail({

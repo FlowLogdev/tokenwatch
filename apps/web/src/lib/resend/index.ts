@@ -23,12 +23,19 @@ export async function sendEmail({
     return { data: null, error: null }
   }
 
-  return getResend().emails.send({
+  const result = await getResend().emails.send({
     from: FROM,
     to,
     subject,
     html,
   })
+
+  if (result.error) {
+    console.error('Resend delivery error:', result.error)
+    throw new Error(`Resend delivery failed: ${result.error.message}`)
+  }
+
+  return result
 }
 
 export function emailFrame(title: string, body: string) {

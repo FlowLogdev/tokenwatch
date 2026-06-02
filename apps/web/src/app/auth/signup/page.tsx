@@ -79,7 +79,7 @@ export default function SignupPage() {
               <input
                 type="text"
                 className="input-field"
-                placeholder="Jane Smith"
+                placeholder="Your name"
                 value={name}
                 onChange={e => setName(e.target.value)}
                 required
@@ -90,7 +90,7 @@ export default function SignupPage() {
               <input
                 type="text"
                 className="input-field"
-                placeholder="Northstar Robotics"
+                placeholder="Your company"
                 value={orgName}
                 onChange={e => setOrgName(e.target.value)}
                 required

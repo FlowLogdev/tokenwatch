@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { MOCK_ALERTS } from '@/lib/mock-data'
 
 export default function AlertsPage() {
   const [slackWebhook, setSlackWebhook] = useState('')
@@ -23,54 +22,22 @@ export default function AlertsPage() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px', gap: '24px' }}>
-        {/* Alert log */}
         <div>
-          <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--border)' }}>
-              <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>Alert History</h3>
-            </div>
-            {MOCK_ALERTS.map(alert => (
-              <div key={alert.id} style={{
-                padding: '16px 24px',
-                borderBottom: '1px solid var(--border)',
-                display: 'flex',
-                alignItems: 'flex-start',
-                gap: '16px',
-              }}>
-                <div style={{
-                  width: '36px',
-                  height: '36px',
-                  borderRadius: '8px',
-                  background: alert.severity === 'high' ? 'rgba(239,68,68,0.15)' : alert.severity === 'medium' ? 'rgba(234,179,8,0.15)' : 'rgba(107,107,120,0.15)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '18px',
-                  flexShrink: 0,
-                }}>
-                  {alert.severity === 'high' ? '🔴' : alert.severity === 'medium' ? '⚠️' : 'ℹ️'}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 600, fontSize: '14px' }}>{alert.engineerName}</span>
-                    <span style={{ fontSize: '12px', color: 'var(--muted)' }}>{alert.timestamp}</span>
-                  </div>
-                  <div style={{ fontSize: '13px', color: 'var(--muted)' }}>{alert.message}</div>
-                </div>
-              </div>
-            ))}
+          <div className="card" style={{ padding: '20px 24px' }}>
+            <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 8px' }}>Alert History</h3>
+            <p style={{ color: 'var(--muted)', fontSize: '13px', lineHeight: 1.6, margin: 0 }}>
+              No alerts have been triggered yet. Alerts appear here after real usage crosses configured thresholds.
+            </p>
           </div>
         </div>
 
-        {/* Configuration */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Thresholds */}
           <div className="card">
             <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 16px' }}>Budget Thresholds</h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {[
                 { key: 'p50', label: '50%', desc: 'Early heads-up', color: 'var(--muted)' },
-                { key: 'p80', label: '80%', desc: 'Warning — action needed', color: 'var(--yellow)' },
+                { key: 'p80', label: '80%', desc: 'Warning level', color: 'var(--yellow)' },
                 { key: 'p100', label: '100%', desc: 'Budget exceeded', color: 'var(--red)' },
               ].map(({ key, label, desc, color }) => (
                 <div key={key} style={{
@@ -118,7 +85,6 @@ export default function AlertsPage() {
             </div>
           </div>
 
-          {/* Slack */}
           <div className="card">
             <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 8px' }}>Slack Notifications</h3>
             <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 14px' }}>
@@ -132,12 +98,8 @@ export default function AlertsPage() {
             />
           </div>
 
-          <button
-            onClick={handleSave}
-            className="btn-primary"
-            style={{ justifyContent: 'center' }}
-          >
-            {saved ? '✓ Saved' : 'Save Configuration'}
+          <button onClick={handleSave} className="btn-primary" style={{ justifyContent: 'center' }}>
+            {saved ? 'Saved' : 'Save Configuration'}
           </button>
         </div>
       </div>

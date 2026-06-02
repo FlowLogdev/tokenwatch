@@ -3,21 +3,12 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 
 export default function BudgetForecastChart({
-  dailySpend,
+  data,
   budgetCents,
-  currentDay,
 }: {
-  dailySpend: number
+  data: Array<{ day: string; actual: number | null; projected: number | null }>
   budgetCents: number
-  currentDay: number
 }) {
-  const data = Array.from({ length: 30 }, (_, i) => {
-    const day = i + 1
-    const actual = day <= currentDay ? Math.round(dailySpend * day * (0.8 + Math.random() * 0.4)) : null
-    const projected = day > currentDay ? Math.round(dailySpend * day) : null
-    return { day: `${day}`, actual, projected }
-  })
-
   return (
     <div className="card">
       <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 8px' }}>Monthly Spend Forecast</h3>

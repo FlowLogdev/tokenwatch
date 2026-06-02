@@ -4,7 +4,6 @@ import BudgetRing from '@/components/charts/BudgetRing'
 import ToolBreakdown from '@/components/charts/ToolBreakdown'
 import EngineerLeaderboard from '@/components/dashboard/EngineerLeaderboard'
 import AlertsPanel from '@/components/dashboard/AlertsPanel'
-import { MOCK_ALERTS } from '@/lib/mock-data'
 import { requireAppUser } from '@/lib/authz'
 
 const TOOL_COLORS: Record<string, string> = {
@@ -25,6 +24,13 @@ const TOOL_LABELS: Record<string, string> = {
   custom: 'Custom',
 }
 
+type AlertRow = {
+  id: string
+  threshold_pct: number
+  triggered_at: string
+  engineers: { name: string | null } | { name: string | null }[] | null
+}
+
 function toDayLabel(date: string) {
   return new Date(`${date}T12:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
@@ -38,7 +44,7 @@ export default async function DashboardPage() {
   const from = monthStart.toISOString().slice(0, 10)
   const to = now.toISOString().slice(0, 10)
 
-  const [{ data: summaries }, { data: priorSummaries }, { data: engineers }] = await Promise.all([
+  const [{ data: summaries }, { data: priorSummaries }, { data: engineers }, { data: alerts }] = await Promise.all([
     supabase
       .from('daily_summaries')
       .select('engineer_id, tool, date, total_tokens, total_cost_usd')
@@ -55,6 +61,12 @@ export default async function DashboardPage() {
       .from('engineers')
       .select('id, name, email, team, monthly_budget_override')
       .eq('org_id', organization.id),
+    supabase
+      .from('budget_alerts')
+      .select('id, engineer_id, threshold_pct, triggered_at, spend_at_trigger, engineers(name)')
+      .eq('org_id', organization.id)
+      .order('triggered_at', { ascending: false })
+      .limit(5),
   ])
 
   const rows = summaries ?? []
@@ -148,7 +160,22 @@ export default async function DashboardPage() {
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '24px' }}>
         <EngineerLeaderboard engineers={leaderboard} />
-        <AlertsPanel alerts={MOCK_ALERTS.slice(0, 0)} />
+        <AlertsPanel alerts={((alerts ?? []) as AlertRow[]).map(alert => {
+          const engineerName = Array.isArray(alert.engineers)
+            ? alert.engineers[0]?.name
+            : alert.engineers?.name
+          const threshold = alert.threshold_pct
+          return {
+            id: alert.id,
+            type: threshold === -1 ? 'anomaly' as const : 'budget' as const,
+            engineerName: engineerName ?? 'Unknown engineer',
+            message: threshold === -1
+              ? 'Spending anomaly detected'
+              : `Reached ${threshold}% of monthly budget`,
+            timestamp: new Date(alert.triggered_at).toLocaleString(),
+            severity: threshold >= 100 || threshold === -1 ? 'high' as const : threshold >= 80 ? 'medium' as const : 'low' as const,
+          }
+        })} />
       </div>
     </div>
   )

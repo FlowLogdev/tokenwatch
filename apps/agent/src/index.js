@@ -47,7 +47,9 @@ function track({ tool, model, inputTokens, outputTokens, sessionId, metadata }) 
 
   const queue = loadQueue()
   queue.push({
-    engineer_id: config.engineerId ?? require('crypto').createHash('md5').update(config.engineerEmail ?? 'unknown').digest('hex'),
+    engineer_id: config.engineerId ?? null,
+    engineer_email: config.engineerEmail ?? null,
+    engineer_name: config.engineerName ?? null,
     tool,
     model: model ?? 'unknown',
     input_tokens: inputTokens ?? 0,

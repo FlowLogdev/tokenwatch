@@ -3,7 +3,6 @@
 const fs = require('fs')
 const path = require('path')
 const os = require('os')
-const crypto = require('crypto')
 
 const CONFIG_DIR = path.join(os.homedir(), '.tokenwatch')
 const QUEUE_FILE = path.join(CONFIG_DIR, 'queue.json')
@@ -76,7 +75,9 @@ function parseClaudeLog(filePath, config) {
     if (!log.usage) return
 
     const event = {
-      engineer_id: config.engineerId ?? crypto.createHash('md5').update(config.engineerEmail).digest('hex'),
+      engineer_id: config.engineerId ?? null,
+      engineer_email: config.engineerEmail ?? null,
+      engineer_name: config.engineerName ?? null,
       tool: 'claude_code',
       model: log.model ?? 'claude-sonnet',
       input_tokens: log.usage.input_tokens ?? 0,
@@ -131,7 +132,9 @@ function startProxy(config) {
           if (json.usage) {
             const tool = req.url.includes('/completions') ? 'codex' : 'chatgpt'
             const event = {
-              engineer_id: config.engineerId ?? crypto.createHash('md5').update(config.engineerEmail).digest('hex'),
+              engineer_id: config.engineerId ?? null,
+              engineer_email: config.engineerEmail ?? null,
+              engineer_name: config.engineerName ?? null,
               tool,
               model: json.model ?? 'unknown',
               input_tokens: json.usage.prompt_tokens ?? 0,

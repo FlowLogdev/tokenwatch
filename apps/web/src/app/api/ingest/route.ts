@@ -6,11 +6,57 @@ import { cleanEnv } from '@/lib/env'
 
 export const dynamic = 'force-dynamic'
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+
 function getSupabase() {
   return createClient(
     cleanEnv(process.env.NEXT_PUBLIC_SUPABASE_URL),
     cleanEnv(process.env.SUPABASE_SERVICE_ROLE_KEY)
   )
+}
+
+async function resolveEngineer(sb: ReturnType<typeof getSupabase>, orgId: string, event: {
+  engineer_id?: string
+  engineer_email?: string
+  engineer_name?: string
+  metadata?: Record<string, unknown>
+}) {
+  if (event.engineer_id && UUID_RE.test(event.engineer_id)) {
+    const { data } = await sb
+      .from('engineers')
+      .select('id')
+      .eq('org_id', orgId)
+      .eq('id', event.engineer_id)
+      .maybeSingle()
+
+    if (data?.id) return data.id
+  }
+
+  const emailFromMetadata = typeof event.metadata?.engineer_email === 'string'
+    ? event.metadata.engineer_email
+    : undefined
+  const nameFromMetadata = typeof event.metadata?.engineer_name === 'string'
+    ? event.metadata.engineer_name
+    : undefined
+  const email = (event.engineer_email ?? emailFromMetadata ?? 'unknown@tokenwatch.local').toLowerCase()
+  const name = event.engineer_name ?? nameFromMetadata ?? email.split('@')[0] ?? 'Unknown engineer'
+
+  const { data, error } = await sb
+    .from('engineers')
+    .upsert({
+      org_id: orgId,
+      email,
+      name,
+      team: 'Tracked',
+    }, { onConflict: 'org_id,email' })
+    .select('id')
+    .single()
+
+  if (error || !data) {
+    throw new Error(error?.message ?? 'Could not resolve engineer')
+  }
+
+  return data.id
 }
 
 async function verifyApiKey(authHeader: string | null) {
@@ -63,7 +109,9 @@ export async function POST(req: NextRequest) {
   }
 
   const events = body.events.map((e: {
-    engineer_id: string
+    engineer_id?: string
+    engineer_email?: string
+    engineer_name?: string
     tool: string
     model?: string
     input_tokens?: number
@@ -72,26 +120,36 @@ export async function POST(req: NextRequest) {
     session_id?: string
     metadata?: Record<string, unknown>
     timestamp?: string
-  }) => ({
-    org_id: apiKey.org_id,
-    engineer_id: e.engineer_id,
-    tool: e.tool,
-    model: e.model ?? 'unknown',
-    input_tokens: e.input_tokens ?? 0,
-    output_tokens: e.output_tokens ?? 0,
-    cost_usd: e.cost_usd ?? calcCost(e.tool, e.input_tokens ?? 0, e.output_tokens ?? 0),
-    session_id: e.session_id ?? null,
-    metadata: e.metadata ?? null,
-    timestamp: e.timestamp ?? new Date().toISOString(),
-  }))
+  }) => e)
 
-  const { error } = await sb.from('usage_events').insert(events)
+  const resolvedEvents = []
+  for (const event of events) {
+    const engineerId = await resolveEngineer(sb, apiKey.org_id, event)
+    resolvedEvents.push({
+      org_id: apiKey.org_id,
+      engineer_id: engineerId,
+      tool: event.tool,
+      model: event.model ?? 'unknown',
+      input_tokens: event.input_tokens ?? 0,
+      output_tokens: event.output_tokens ?? 0,
+      cost_usd: event.cost_usd ?? calcCost(event.tool, event.input_tokens ?? 0, event.output_tokens ?? 0),
+      session_id: event.session_id ?? null,
+      metadata: {
+        ...(event.metadata ?? {}),
+        engineer_email: event.engineer_email,
+        engineer_name: event.engineer_name,
+      },
+      timestamp: event.timestamp ?? new Date().toISOString(),
+    })
+  }
+
+  const { error } = await sb.from('usage_events').insert(resolvedEvents)
   if (error) {
     console.error('Ingest error:', error)
     return NextResponse.json({ error: 'Insert failed' }, { status: 500 })
   }
 
-  for (const event of events) {
+  for (const event of resolvedEvents) {
     const date = event.timestamp.slice(0, 10)
     const { data: existing } = await sb
       .from('daily_summaries')
@@ -121,5 +179,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, inserted: events.length })
+  return NextResponse.json({ ok: true, inserted: resolvedEvents.length })
 }

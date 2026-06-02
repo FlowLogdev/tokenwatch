@@ -5,7 +5,6 @@ const { parseArgs } = require('util')
 const path = require('path')
 const fs = require('fs')
 const os = require('os')
-const crypto = require('crypto')
 
 const CONFIG_DIR = path.join(os.homedir(), '.tokenwatch')
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json')
@@ -26,8 +25,10 @@ const command = args[0]
 if (command === 'init') {
   const keyIdx = args.indexOf('--key')
   const emailIdx = args.indexOf('--email')
+  const nameIdx = args.indexOf('--name')
   const key = keyIdx >= 0 ? args[keyIdx + 1] : null
   const email = emailIdx >= 0 ? args[emailIdx + 1] : null
+  const name = nameIdx >= 0 ? args[nameIdx + 1] : null
 
   if (!key || !key.startsWith('TW_')) {
     console.error('❌  Please provide your API key: tokenwatch init --key TW_xxxx')
@@ -37,6 +38,7 @@ if (command === 'init') {
   const config = {
     apiKey: key,
     engineerEmail: email ?? '',
+    engineerName: name ?? '',
     apiUrl: 'https://tokenwatch.flowlog.dev/api/ingest',
     tools: { claude_code: true, openai_proxy: true },
     reportingInterval: 60,
@@ -57,6 +59,7 @@ if (command === 'init') {
   console.log('✅  TokenWatch is configured')
   console.log(`   API Key: ${config.apiKey.slice(0, 8)}...`)
   console.log(`   Engineer: ${config.engineerEmail || '(not set)'}`)
+  if (config.engineerName) console.log(`   Name: ${config.engineerName}`)
   try {
     const queue = JSON.parse(fs.readFileSync(QUEUE_FILE, 'utf8'))
     console.log(`   Queued events: ${queue.length}`)
@@ -76,7 +79,7 @@ if (command === 'init') {
 TokenWatch Agent v0.1.0
 
 Usage:
-  tokenwatch init --key TW_xxxx [--email you@company.com]
+  tokenwatch init --key TW_xxxx [--email you@company.com] [--name "Your Name"]
   tokenwatch start
   tokenwatch status
 

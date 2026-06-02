@@ -44,7 +44,7 @@ export default async function DashboardPage() {
   const from = monthStart.toISOString().slice(0, 10)
   const to = now.toISOString().slice(0, 10)
 
-  const [{ data: summaries }, { data: priorSummaries }, { data: engineers }, { data: alerts }] = await Promise.all([
+  const [{ data: summaries }, { data: priorSummaries }, { data: engineers }, { data: alerts }, { data: subscriptions }] = await Promise.all([
     supabase
       .from('daily_summaries')
       .select('engineer_id, tool, date, total_tokens, total_cost_usd')
@@ -67,12 +67,18 @@ export default async function DashboardPage() {
       .eq('org_id', organization.id)
       .order('triggered_at', { ascending: false })
       .limit(5),
+    supabase
+      .from('tool_subscriptions')
+      .select('engineer_id, tool, monthly_cost_cents')
+      .eq('org_id', organization.id)
+      .eq('status', 'active'),
   ])
 
   const rows = summaries ?? []
-  const totalSpend = rows.reduce((sum, row) => sum + row.total_cost_usd, 0)
+  const subscriptionSpend = (subscriptions ?? []).reduce((sum, row) => sum + row.monthly_cost_cents, 0)
+  const totalSpend = rows.reduce((sum, row) => sum + row.total_cost_usd, 0) + subscriptionSpend
   const totalTokens = rows.reduce((sum, row) => sum + row.total_tokens, 0)
-  const priorSpend = (priorSummaries ?? []).reduce((sum, row) => sum + row.total_cost_usd, 0)
+  const priorSpend = (priorSummaries ?? []).reduce((sum, row) => sum + row.total_cost_usd, 0) + subscriptionSpend
   const change = priorSpend > 0 ? ((totalSpend - priorSpend) / priorSpend) * 100 : 0
   const engineerCount = engineers?.length ?? 0
   const budgetTotal = organization.monthly_budget ?? 0
@@ -81,6 +87,9 @@ export default async function DashboardPage() {
   const dailyMap = new Map<string, number>()
   for (const row of rows) {
     dailyMap.set(row.date, (dailyMap.get(row.date) ?? 0) + row.total_cost_usd)
+  }
+  if (subscriptionSpend > 0) {
+    dailyMap.set(from, (dailyMap.get(from) ?? 0) + subscriptionSpend)
   }
   const dailySpend = Array.from({ length: 14 }, (_, index) => {
     const day = new Date(now)
@@ -100,6 +109,9 @@ export default async function DashboardPage() {
   for (const row of rows) {
     toolTotals.set(row.tool, (toolTotals.get(row.tool) ?? 0) + row.total_cost_usd)
   }
+  for (const row of subscriptions ?? []) {
+    toolTotals.set(row.tool, (toolTotals.get(row.tool) ?? 0) + row.monthly_cost_cents)
+  }
   const toolBreakdown = Array.from(toolTotals.entries())
     .sort((a, b) => b[1] - a[1])
     .map(([tool, spendCents]) => ({
@@ -114,6 +126,12 @@ export default async function DashboardPage() {
     const current = engineerTotals.get(row.engineer_id) ?? { spendCents: 0, tokens: 0 }
     current.spendCents += row.total_cost_usd
     current.tokens += row.total_tokens
+    engineerTotals.set(row.engineer_id, current)
+  }
+  for (const row of subscriptions ?? []) {
+    if (!row.engineer_id) continue
+    const current = engineerTotals.get(row.engineer_id) ?? { spendCents: 0, tokens: 0 }
+    current.spendCents += row.monthly_cost_cents
     engineerTotals.set(row.engineer_id, current)
   }
   const leaderboard = (engineers ?? [])

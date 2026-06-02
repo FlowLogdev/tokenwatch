@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { formatCents, formatTokens } from '@/types'
 import { requireAppUser } from '@/lib/authz'
+import EngineerForm from '@/components/dashboard/EngineerForm'
 
 export const dynamic = 'force-dynamic'
 
@@ -9,7 +10,7 @@ export default async function EngineersPage() {
   const from = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10)
   const to = new Date().toISOString().slice(0, 10)
 
-  const [{ data: engineers }, { data: summaries }] = await Promise.all([
+  const [{ data: engineers }, { data: summaries }, { data: subscriptions }] = await Promise.all([
     supabase
       .from('engineers')
       .select('id, name, email, team, monthly_budget_override')
@@ -21,6 +22,11 @@ export default async function EngineersPage() {
       .eq('org_id', organization.id)
       .gte('date', from)
       .lte('date', to),
+    supabase
+      .from('tool_subscriptions')
+      .select('engineer_id, monthly_cost_cents')
+      .eq('org_id', organization.id)
+      .eq('status', 'active'),
   ])
 
   const totals = new Map<string, { spend: number; tokens: number; sessions: number }>()
@@ -29,6 +35,12 @@ export default async function EngineersPage() {
     current.spend += row.total_cost_usd
     current.tokens += row.total_tokens
     current.sessions += row.session_count
+    totals.set(row.engineer_id, current)
+  }
+  for (const row of subscriptions ?? []) {
+    if (!row.engineer_id) continue
+    const current = totals.get(row.engineer_id) ?? { spend: 0, tokens: 0, sessions: 0 }
+    current.spend += row.monthly_cost_cents
     totals.set(row.engineer_id, current)
   }
 
@@ -55,6 +67,8 @@ export default async function EngineersPage() {
           </p>
         </div>
       </div>
+
+      <EngineerForm />
 
       <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
         <table className="data-table">

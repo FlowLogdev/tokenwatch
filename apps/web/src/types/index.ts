@@ -94,6 +94,21 @@ export interface DailySummary {
   created_at: string
 }
 
+export interface ToolSubscription {
+  id: string
+  org_id: string
+  engineer_id: string | null
+  tool: Tool | string
+  plan_name: string
+  monthly_cost_cents: number
+  billing_cycle: 'monthly' | 'annual'
+  renewal_day: number | null
+  status: 'active' | 'paused' | 'canceled'
+  notes: string | null
+  created_at: string
+  updated_at: string
+}
+
 export interface BudgetAlert {
   id: string
   org_id: string

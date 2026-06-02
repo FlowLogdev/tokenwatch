@@ -12,15 +12,23 @@ export default async function BudgetPage() {
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10)
   const today = now.toISOString().slice(0, 10)
 
-  const { data: summaries } = await supabase
-    .from('daily_summaries')
-    .select('date, total_cost_usd, engineers(team)')
-    .eq('org_id', organization.id)
-    .gte('date', monthStart)
-    .lte('date', today)
+  const [{ data: summaries }, { data: subscriptions }] = await Promise.all([
+    supabase
+      .from('daily_summaries')
+      .select('date, total_cost_usd, engineers(team)')
+      .eq('org_id', organization.id)
+      .gte('date', monthStart)
+      .lte('date', today),
+    supabase
+      .from('tool_subscriptions')
+      .select('monthly_cost_cents, engineers(team)')
+      .eq('org_id', organization.id)
+      .eq('status', 'active'),
+  ])
 
   const rows = summaries ?? []
-  const mtdSpend = rows.reduce((sum, row) => sum + row.total_cost_usd, 0)
+  const subscriptionSpend = (subscriptions ?? []).reduce((sum, row) => sum + row.monthly_cost_cents, 0)
+  const mtdSpend = rows.reduce((sum, row) => sum + row.total_cost_usd, 0) + subscriptionSpend
   const dailyAverage = currentDay > 0 ? Math.round(mtdSpend / currentDay) : 0
   const projectedMonthEnd = dailyAverage * daysInMonth
   const isOverBudget = projectedMonthEnd > organization.monthly_budget
@@ -29,6 +37,9 @@ export default async function BudgetPage() {
   for (const row of rows) {
     const day = new Date(`${row.date}T12:00:00`).getDate()
     cumulativeByDay.set(day, (cumulativeByDay.get(day) ?? 0) + row.total_cost_usd)
+  }
+  if (subscriptionSpend > 0) {
+    cumulativeByDay.set(1, (cumulativeByDay.get(1) ?? 0) + subscriptionSpend)
   }
   let running = 0
   const forecastData = Array.from({ length: daysInMonth }, (_, index) => {
@@ -46,6 +57,11 @@ export default async function BudgetPage() {
     const engineer = Array.isArray(row.engineers) ? row.engineers[0] : row.engineers
     const team = engineer?.team ?? 'Unassigned'
     teamTotals.set(team, (teamTotals.get(team) ?? 0) + row.total_cost_usd)
+  }
+  for (const row of subscriptions ?? []) {
+    const engineer = Array.isArray(row.engineers) ? row.engineers[0] : row.engineers
+    const team = engineer?.team ?? 'Organization'
+    teamTotals.set(team, (teamTotals.get(team) ?? 0) + row.monthly_cost_cents)
   }
   const teamRows = Array.from(teamTotals.entries()).sort((a, b) => b[1] - a[1])
 

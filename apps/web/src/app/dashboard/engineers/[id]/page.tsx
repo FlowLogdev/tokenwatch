@@ -36,7 +36,7 @@ export default async function EngineerDetailPage({ params }: { params: { id: str
   const thirtyDaysAgo = new Date(now)
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 29)
 
-  const [{ data: engineer }, { data: summaries }, { data: events }] = await Promise.all([
+  const [{ data: engineer }, { data: summaries }, { data: events }, { data: subscriptions }] = await Promise.all([
     supabase
       .from('engineers')
       .select('id, name, email, team, monthly_budget_override')
@@ -57,13 +57,20 @@ export default async function EngineerDetailPage({ params }: { params: { id: str
       .eq('engineer_id', params.id)
       .order('timestamp', { ascending: false })
       .limit(25),
+    supabase
+      .from('tool_subscriptions')
+      .select('tool, plan_name, monthly_cost_cents, status')
+      .eq('org_id', organization.id)
+      .eq('engineer_id', params.id)
+      .eq('status', 'active'),
   ])
 
   if (!engineer) {
     redirect('/dashboard/engineers')
   }
 
-  const spendCents = (summaries ?? []).reduce((sum, row) => sum + row.total_cost_usd, 0)
+  const subscriptionSpend = (subscriptions ?? []).reduce((sum, row) => sum + row.monthly_cost_cents, 0)
+  const spendCents = (summaries ?? []).reduce((sum, row) => sum + row.total_cost_usd, 0) + subscriptionSpend
   const tokens = (summaries ?? []).reduce((sum, row) => sum + row.total_tokens, 0)
   const sessionCount = (summaries ?? []).reduce((sum, row) => sum + row.session_count, 0)
   const monthlyBudgetCents = engineer.monthly_budget_override ?? organization.monthly_budget
@@ -83,6 +90,9 @@ export default async function EngineerDetailPage({ params }: { params: { id: str
   const toolTotals = new Map<string, number>()
   for (const row of summaries ?? []) {
     toolTotals.set(row.tool, (toolTotals.get(row.tool) ?? 0) + row.total_cost_usd)
+  }
+  for (const row of subscriptions ?? []) {
+    toolTotals.set(row.tool, (toolTotals.get(row.tool) ?? 0) + row.monthly_cost_cents)
   }
   const toolBreakdown = Array.from(toolTotals.entries())
     .sort((a, b) => b[1] - a[1])

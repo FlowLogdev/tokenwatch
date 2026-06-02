@@ -18,7 +18,14 @@ export async function GET(req: NextRequest) {
     .gte('date', from)
     .lte('date', to)
 
-  const totalCost = summaries?.reduce((sum, s) => sum + s.total_cost_usd, 0) ?? 0
+  const { data: subscriptions } = await supabase
+    .from('tool_subscriptions')
+    .select('monthly_cost_cents')
+    .eq('org_id', orgId)
+    .eq('status', 'active')
+
+  const subscriptionCost = subscriptions?.reduce((sum, s) => sum + s.monthly_cost_cents, 0) ?? 0
+  const totalCost = (summaries?.reduce((sum, s) => sum + s.total_cost_usd, 0) ?? 0) + subscriptionCost
   const totalTokens = summaries?.reduce((sum, s) => sum + s.total_tokens, 0) ?? 0
 
   const { count: engineerCount } = await supabase

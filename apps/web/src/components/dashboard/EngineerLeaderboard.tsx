@@ -35,6 +35,13 @@ export default function EngineerLeaderboard({ engineers }: { engineers: Engineer
           </tr>
         </thead>
         <tbody>
+          {engineers.length === 0 && (
+            <tr>
+              <td colSpan={6} style={{ color: 'var(--muted)', fontSize: '13px', padding: '18px 24px' }}>
+                No engineers have usage recorded yet.
+              </td>
+            </tr>
+          )}
           {engineers.map(eng => (
             <tr key={eng.id}>
               <td style={{ fontFamily: 'var(--font-mono)', color: 'var(--muted)', fontSize: '13px' }}>{eng.rank}</td>

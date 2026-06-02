@@ -13,9 +13,10 @@ export default function BudgetRing({
   total: number
 }) {
   const color = used >= 80 ? 'var(--red)' : used >= 50 ? 'var(--yellow)' : 'var(--accent)'
+  const visibleUsed = Math.max(0, Math.min(100, used))
   const data = [
-    { value: used },
-    { value: 100 - used },
+    { value: visibleUsed },
+    { value: Math.max(0, 100 - visibleUsed) },
   ]
 
   return (

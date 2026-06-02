@@ -16,6 +16,11 @@ export default function ToolBreakdown({ data }: { data: ToolData[] }) {
         By Tool
       </h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        {data.length === 0 && (
+          <p style={{ margin: 0, color: 'var(--muted)', fontSize: '13px', lineHeight: 1.6 }}>
+            No tool usage recorded yet.
+          </p>
+        )}
         {data.map(item => (
           <div key={item.tool}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', fontSize: '13px' }}>

@@ -93,7 +93,7 @@ export default async function IntegrationsPage() {
                       {integration.last_synced_at ? new Date(integration.last_synced_at).toLocaleString() : 'Never'}
                     </td>
                     <td style={{ color: 'var(--muted)', fontSize: '13px' }}>
-                      {run ? `${run.status} · ${run.imported_events} events` : 'No syncs yet'}
+                      {run ? `${run.status} - ${run.imported_events} events` : 'No syncs yet'}
                     </td>
                     <td>
                       <ProviderIntegrationActions id={integration.id} status={integration.status} />

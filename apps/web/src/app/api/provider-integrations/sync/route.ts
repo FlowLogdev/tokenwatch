@@ -28,6 +28,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, ...result })
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Provider sync failed.'
-    return NextResponse.json({ error: message }, { status: 500 })
+    return NextResponse.json({ ok: false, error: message })
   }
 }

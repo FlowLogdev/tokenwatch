@@ -133,7 +133,9 @@ async function fetchOpenAIUsage(integration: Integration, apiKey: string, since:
   const response = await fetch(`https://api.openai.com/v1/organization/usage/completions?${params}`, {
     headers: { Authorization: `Bearer ${apiKey}` },
   })
-  if (!response.ok) throw new Error(`OpenAI usage sync failed: ${response.status}`)
+  if (!response.ok) {
+    throw new Error(providerSyncError('OpenAI', response.status, 'Use an OpenAI admin key with organization usage permissions. Project keys cannot read organization usage.'))
+  }
   const json = await response.json()
   const buckets = Array.isArray(json.data) ? json.data : []
 
@@ -168,7 +170,9 @@ async function fetchAnthropicUsage(integration: Integration, apiKey: string, sin
       'anthropic-version': '2023-06-01',
     },
   })
-  if (!response.ok) throw new Error(`Anthropic usage sync failed: ${response.status}`)
+  if (!response.ok) {
+    throw new Error(providerSyncError('Anthropic', response.status, 'Use an Anthropic admin key with usage report access for the organization.'))
+  }
   const json = await response.json()
   const rows = Array.isArray(json.data) ? json.data : []
 
@@ -197,7 +201,9 @@ async function fetchGithubCopilotUsage(integration: Integration, apiKey: string,
       'X-GitHub-Api-Version': '2022-11-28',
     },
   })
-  if (!response.ok) throw new Error(`GitHub Copilot usage sync failed: ${response.status}`)
+  if (!response.ok) {
+    throw new Error(providerSyncError('GitHub Copilot', response.status, 'Use a GitHub token that can read Copilot usage metrics for this organization.'))
+  }
   const json = await response.json()
   const rows = Array.isArray(json) ? json : Array.isArray(json.data) ? json.data : []
 
@@ -213,6 +219,14 @@ async function fetchGithubCopilotUsage(integration: Integration, apiKey: string,
     timestamp: String(row.day ? `${row.day}T12:00:00.000Z` : since.toISOString()),
     metadata: { provider: 'github_copilot', source: 'copilot_usage', raw: row },
   }))
+}
+
+function providerSyncError(provider: string, status: number, guidance: string) {
+  if (status === 401) return `${provider} rejected the key. ${guidance}`
+  if (status === 403) return `${provider} denied usage access. ${guidance}`
+  if (status === 404) return `${provider} usage endpoint was not found for this account. Check that usage reporting is available on your plan.`
+  if (status === 429) return `${provider} rate limit reached. Try again later.`
+  return `${provider} usage sync failed with status ${status}.`
 }
 
 async function resolveEngineer(sb: SupabaseAdmin, orgId: string, engineer: { email: string; name: string }) {

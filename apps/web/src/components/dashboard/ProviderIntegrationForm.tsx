@@ -78,7 +78,10 @@ export default function ProviderIntegrationForm() {
 
       <label style={{ display: 'grid', gap: '6px', fontSize: '13px', fontWeight: 700 }}>
         API key or token
-        <input className="input-field" type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="Stored encrypted" required />
+        <input className="input-field" type="password" value={apiKey} onChange={e => setApiKey(e.target.value)} placeholder="Paste a new provider admin key" required />
+        <span style={{ color: 'var(--muted)', fontSize: '12px', fontWeight: 500 }}>
+          Provider keys are encrypted. Use Delete key on a connected provider to remove a saved key.
+        </span>
       </label>
 
       {provider === 'github_copilot' && (

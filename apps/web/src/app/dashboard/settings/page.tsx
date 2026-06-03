@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { requireAppUser } from '@/lib/authz'
+import ApiKeyActions from '@/components/dashboard/ApiKeyActions'
 
 export const dynamic = 'force-dynamic'
 
@@ -12,7 +13,7 @@ export default async function SettingsPage() {
     .order('created_at', { ascending: false })
 
   return (
-    <div style={{ maxWidth: '640px' }}>
+    <div style={{ maxWidth: '720px' }}>
       <div style={{ marginBottom: '24px' }}>
         <h1 style={{ fontSize: '22px', fontWeight: 800, margin: 0 }}>Settings</h1>
         <p style={{ color: 'var(--muted)', fontSize: '14px', margin: '4px 0 0' }}>
@@ -42,7 +43,7 @@ export default async function SettingsPage() {
         <div className="card">
           <h3 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 8px' }}>API Keys</h3>
           <p style={{ fontSize: '13px', color: 'var(--muted)', margin: '0 0 16px', lineHeight: 1.6 }}>
-            API keys are shown only when generated. Existing keys are stored as hashes and cannot be revealed.
+            API keys are shown only when generated. Existing keys are stored as hashes and cannot be revealed. Revoke a key to immediately stop agents or API clients using it.
           </p>
           <div style={{ display: 'grid', gap: '10px' }}>
             {(apiKeys ?? []).length === 0 && (
@@ -54,12 +55,19 @@ export default async function SettingsPage() {
                 border: '1px solid var(--border)',
                 borderRadius: '8px',
                 background: 'var(--surface2)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '12px',
               }}>
-                <div style={{ fontWeight: 700, fontSize: '14px' }}>{key.name}</div>
-                <div style={{ color: 'var(--muted)', fontSize: '12px', marginTop: 4 }}>
-                  Created {new Date(key.created_at).toLocaleString()}
-                  {key.last_used_at ? ` · Last used ${new Date(key.last_used_at).toLocaleString()}` : ' · Never used'}
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '14px' }}>{key.name}</div>
+                  <div style={{ color: 'var(--muted)', fontSize: '12px', marginTop: 4 }}>
+                    Created {new Date(key.created_at).toLocaleString()}
+                    {key.last_used_at ? ` · Last used ${new Date(key.last_used_at).toLocaleString()}` : ' · Never used'}
+                  </div>
                 </div>
+                <ApiKeyActions id={key.id} name={key.name} />
               </div>
             ))}
           </div>

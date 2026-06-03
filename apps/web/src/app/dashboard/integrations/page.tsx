@@ -96,7 +96,7 @@ export default async function IntegrationsPage() {
                       {run ? `${run.status} · ${run.imported_events} events` : 'No syncs yet'}
                     </td>
                     <td>
-                      <ProviderIntegrationActions id={integration.id} />
+                      <ProviderIntegrationActions id={integration.id} status={integration.status} />
                     </td>
                   </tr>
                 )

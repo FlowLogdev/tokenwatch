@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { href: '/dashboard/alerts', label: 'Alerts', icon: 'AL' },
   { href: '/dashboard/budget', label: 'Budget', icon: 'BU' },
   { href: '/dashboard/tools', label: 'Tools', icon: 'TO' },
+  { href: '/dashboard/integrations', label: 'Integrations', icon: 'IN' },
   { href: '/dashboard/tickets', label: 'Tickets', icon: 'TI' },
   { href: '/dashboard/admin', label: 'Admin', icon: 'AD' },
   { href: '/dashboard/settings', label: 'Settings', icon: 'SE' },

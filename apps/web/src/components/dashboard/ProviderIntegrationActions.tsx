@@ -1,16 +1,27 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 
 export default function ProviderIntegrationActions({ id, status }: { id: string; status: string }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [, startTransition] = useTransition()
 
-  async function syncNow() {
+  function refreshPage() {
+    startTransition(() => router.refresh())
+  }
+
+  function syncNow() {
     setLoading(true)
     setError('')
+    window.setTimeout(() => {
+      void runSyncNow()
+    }, 0)
+  }
+
+  async function runSyncNow() {
     const res = await fetch('/api/provider-integrations/sync', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -18,17 +29,23 @@ export default function ProviderIntegrationActions({ id, status }: { id: string;
     })
     const data = await res.json().catch(() => null)
     if (!res.ok || data?.ok === false) {
-      router.refresh()
       setLoading(false)
+      refreshPage()
       return
     }
     setLoading(false)
-    router.refresh()
+    refreshPage()
   }
 
-  async function setStatus(nextStatus: 'active' | 'paused') {
+  function setStatus(nextStatus: 'active' | 'paused') {
     setLoading(true)
     setError('')
+    window.setTimeout(() => {
+      void runSetStatus(nextStatus)
+    }, 0)
+  }
+
+  async function runSetStatus(nextStatus: 'active' | 'paused') {
     const res = await fetch('/api/provider-integrations', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
@@ -39,13 +56,19 @@ export default function ProviderIntegrationActions({ id, status }: { id: string;
       setError(data?.error ?? 'Could not update provider.')
     }
     setLoading(false)
-    router.refresh()
+    refreshPage()
   }
 
-  async function remove() {
+  function remove() {
     if (!window.confirm('Delete this provider integration and remove its encrypted API key?')) return
     setLoading(true)
     setError('')
+    window.setTimeout(() => {
+      void runRemove()
+    }, 0)
+  }
+
+  async function runRemove() {
     const res = await fetch(`/api/provider-integrations?id=${encodeURIComponent(id)}`, {
       method: 'DELETE',
     })
@@ -54,7 +77,7 @@ export default function ProviderIntegrationActions({ id, status }: { id: string;
       setError(data?.error ?? 'Could not delete provider key.')
     }
     setLoading(false)
-    router.refresh()
+    refreshPage()
   }
 
   return (

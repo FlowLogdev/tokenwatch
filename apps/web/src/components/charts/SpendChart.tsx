@@ -49,29 +49,31 @@ export default function SpendChart({ data }: { data: SpendDay[] }) {
           </span>
         </div>
       </div>
-      <ResponsiveContainer width="100%" height={200}>
-        <BarChart data={data} barCategoryGap="30%">
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-          <XAxis
-            dataKey="date"
-            tick={{ fill: 'var(--muted)', fontSize: 11 }}
-            axisLine={false}
-            tickLine={false}
-          />
-          <YAxis
-            tick={{ fill: 'var(--muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={v => `$${(v / 100).toFixed(0)}`}
-          />
-          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
-          <Bar dataKey="spend" radius={[4, 4, 0, 0]}>
-            {data.map((entry, index) => (
-              <Cell key={`cell-${index}`} fill={entry.isAnomaly ? 'var(--red)' : 'var(--accent)'} />
-            ))}
-          </Bar>
-        </BarChart>
-      </ResponsiveContainer>
+      <div style={{ width: '100%', minWidth: 0, height: 200 }}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+          <BarChart data={data} barCategoryGap="30%">
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+            <XAxis
+              dataKey="date"
+              tick={{ fill: 'var(--muted)', fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fill: 'var(--muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={v => `$${(v / 100).toFixed(0)}`}
+            />
+            <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.03)' }} />
+            <Bar dataKey="spend" radius={[4, 4, 0, 0]}>
+              {data.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.isAnomaly ? 'var(--red)' : 'var(--accent)'} />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   )
 }

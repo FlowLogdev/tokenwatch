@@ -85,11 +85,13 @@ export default async function IntegrationsPage() {
 
           {(integrations ?? []).map(integration => {
             const run = latestRun.get(integration.id)
-            const statusColor = integration.status === 'error'
-              ? 'var(--red)'
+            const hasError = Boolean(integration.last_error)
+            const statusColor = hasError
+              ? 'var(--yellow)'
               : integration.status === 'active'
                 ? 'var(--green)'
                 : 'var(--muted)'
+            const statusText = hasError ? 'Needs setup' : integration.status
 
             return (
               <div
@@ -116,10 +118,16 @@ export default async function IntegrationsPage() {
                       fontSize: '12px',
                     }}
                   >
-                    {integration.status}
+                    {statusText}
                   </span>
                   {integration.last_error && (
-                    <div style={{ color: 'var(--red)', fontSize: '12px', marginTop: 6, lineHeight: 1.45 }}>
+                    <div style={{
+                      color: 'var(--muted)',
+                      fontSize: '12px',
+                      marginTop: 6,
+                      lineHeight: 1.45,
+                      maxWidth: '340px',
+                    }}>
                       {integration.last_error}
                     </div>
                   )}

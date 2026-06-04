@@ -24,8 +24,8 @@ export default function BudgetRing({
       <h3 style={{ fontSize: '13px', fontWeight: 700, margin: '0 0 12px', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
         Budget
       </h3>
-      <div style={{ position: 'relative', height: '120px' }}>
-        <ResponsiveContainer width="100%" height="100%">
+      <div style={{ position: 'relative', width: '100%', minWidth: 0, height: '120px' }}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
           <PieChart>
             <Pie
               data={data}

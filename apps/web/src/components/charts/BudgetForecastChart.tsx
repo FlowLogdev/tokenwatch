@@ -15,31 +15,33 @@ export default function BudgetForecastChart({
       <p style={{ fontSize: '12px', color: 'var(--muted)', margin: '0 0 20px' }}>
         Actual vs. projected at current burn rate
       </p>
-      <ResponsiveContainer width="100%" height={220}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-          <XAxis
-            dataKey="day"
-            tick={{ fill: 'var(--muted)', fontSize: 11 }}
-            axisLine={false}
-            tickLine={false}
-            interval={4}
-          />
-          <YAxis
-            tick={{ fill: 'var(--muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
-            axisLine={false}
-            tickLine={false}
-            tickFormatter={v => `$${(v / 100).toFixed(0)}`}
-          />
-          <Tooltip
-            contentStyle={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '13px' }}
-            formatter={(v) => [`$${(Number(v) / 100).toFixed(2)}`, '']}
-          />
-          <ReferenceLine y={budgetCents} stroke="var(--red)" strokeDasharray="4 4" label={{ value: 'Budget', fill: 'var(--red)', fontSize: 11 }} />
-          <Line type="monotone" dataKey="actual" stroke="var(--accent)" strokeWidth={2} dot={false} connectNulls />
-          <Line type="monotone" dataKey="projected" stroke="var(--muted)" strokeWidth={2} strokeDasharray="4 4" dot={false} connectNulls />
-        </LineChart>
-      </ResponsiveContainer>
+      <div style={{ width: '100%', minWidth: 0, height: 220 }}>
+        <ResponsiveContainer width="100%" height="100%" minWidth={1} minHeight={1}>
+          <LineChart data={data}>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+            <XAxis
+              dataKey="day"
+              tick={{ fill: 'var(--muted)', fontSize: 11 }}
+              axisLine={false}
+              tickLine={false}
+              interval={4}
+            />
+            <YAxis
+              tick={{ fill: 'var(--muted)', fontSize: 11, fontFamily: 'var(--font-mono)' }}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={v => `$${(v / 100).toFixed(0)}`}
+            />
+            <Tooltip
+              contentStyle={{ background: 'var(--surface2)', border: '1px solid var(--border)', borderRadius: '8px', fontSize: '13px' }}
+              formatter={(v) => [`$${(Number(v) / 100).toFixed(2)}`, '']}
+            />
+            <ReferenceLine y={budgetCents} stroke="var(--red)" strokeDasharray="4 4" label={{ value: 'Budget', fill: 'var(--red)', fontSize: 11 }} />
+            <Line type="monotone" dataKey="actual" stroke="var(--accent)" strokeWidth={2} dot={false} connectNulls />
+            <Line type="monotone" dataKey="projected" stroke="var(--muted)" strokeWidth={2} strokeDasharray="4 4" dot={false} connectNulls />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
       <div style={{ display: 'flex', gap: '20px', fontSize: '12px', color: 'var(--muted)', marginTop: '12px' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <span style={{ width: '16px', height: '2px', background: 'var(--accent)', display: 'inline-block' }} /> Actual

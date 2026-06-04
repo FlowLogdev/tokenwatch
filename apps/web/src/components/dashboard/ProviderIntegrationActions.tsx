@@ -18,7 +18,9 @@ export default function ProviderIntegrationActions({ id, status }: { id: string;
     })
     const data = await res.json().catch(() => null)
     if (!res.ok || data?.ok === false) {
-      setError(data?.error ?? 'Provider sync failed.')
+      router.refresh()
+      setLoading(false)
+      return
     }
     setLoading(false)
     router.refresh()
